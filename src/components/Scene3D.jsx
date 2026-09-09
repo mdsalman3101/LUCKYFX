@@ -57,11 +57,12 @@ function EnergyCore() {
 }
 
 export default function Scene3D() {
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   return (
     <div className="scene3d" aria-hidden="true">
       <Canvas
         camera={{ position: [0, 0, 7], fov: 45 }}
-        dpr={[1, 1.5]}
+        dpr={[1, 1.35]}
         gl={{ antialias: true, alpha: true }}
       >
         <ambientLight intensity={0.8} />
@@ -70,7 +71,7 @@ export default function Scene3D() {
 
         <EnergyCore />
         <Sparkles
-          count={100}
+          count={reducedMotion ? 35 : 80}
           scale={8}
           size={2.2}
           speed={0.35}
@@ -80,7 +81,7 @@ export default function Scene3D() {
         <OrbitControls
           enableZoom={false}
           enablePan={false}
-          autoRotate
+          autoRotate={!reducedMotion}
           autoRotateSpeed={0.25}
         />
       </Canvas>

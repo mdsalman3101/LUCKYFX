@@ -6,11 +6,12 @@ import {
   Menu, MessageCircle, Palette, Play, PlaySquare, Send, Sparkles,
   X, Youtube, Zap
 } from "lucide-react";
-import gsap from "gsap";
 
-import Scene3D from "./components/Scene3D";
+import HeroMedia from "./components/HeroMedia";
 import Portfolio from "./components/Portfolio";
 import { services, faqs } from "./data/siteData";
+import { assetUrl } from "./lib/assets";
+import { supabase } from "./lib/supabase";
 
 const icons = {
   Home,
@@ -40,55 +41,56 @@ function scrollToId(id) {
     block: "start",
   });
 }
-
 function App() {
   const [menu, setMenu] = useState(false);
   const [faq, setFaq] = useState(null);
   const [sent, setSent] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [sending, setSending] = useState(false);
+  const [lastSentAt, setLastSentAt] = useState(0);
+  const [showReel, setShowReel] = useState(false);
 
+  // ================= SHOWREEL MODAL =================
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ".hero-kicker",
-        { y: 20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, delay: 0.15 }
-      );
+    if (!showReel) return;
 
-      gsap.fromTo(
-        ".hero-title",
-        { y: 45, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1.05,
-          delay: 0.25,
-          ease: "power3.out",
-        }
-      );
+    const previousOverflow = document.body.style.overflow;
 
-      gsap.fromTo(
-        ".hero-copy, .hero-actions, .hero-socials",
-        { y: 24, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          delay: 0.65,
-          stagger: 0.1,
-        }
-      );
-    });
+    document.body.style.overflow = "hidden";
 
-    return () => ctx.revert();
-  }, []);
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setShowReel(false);
+      }
+    };
 
-  const handleSubmit = (e) => {
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showReel]);
+
+  // ================= CONTACT FORM =================
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSent(true);
-    window.setTimeout(() => setSent(false), 5000);
+    setFormError("");
+    const data = new FormData(e.currentTarget);
+    if (data.get("website")) return;
+    if (Date.now() - lastSentAt < 15000) { setFormError("Please wait a few seconds before sending another message."); return; }
+    if (!supabase) { setFormError("Contact service is not configured yet. Please email or call us directly."); return; }
+    const payload = Object.fromEntries(["name", "email", "phone", "service", "message"].map((key) => [key, String(data.get(key) || "").trim()]));
+    if (payload.name.length < 2 || payload.message.length < 10) { setFormError("Please enter your name and at least 10 characters of project details."); return; }
+    setSending(true);
+    const { error } = await supabase.from("contact_messages").insert(payload);
+    setSending(false);
+    if (error) { setFormError("Your inquiry could not be sent. Please try again or use the contact details shown."); return; }
+    e.currentTarget.reset(); setLastSentAt(Date.now()); setSent(true); window.setTimeout(() => setSent(false), 5000);
   };
 
   return (
+
     <div className="app">
       <div className="noise" />
 
@@ -99,7 +101,7 @@ function App() {
           onClick={() => scrollToId("home")}
           aria-label="Lucky FX Studio home"
         >
-          <img src="/assets/lucky-fx-logo.jpeg" alt="Lucky FX Studio" />
+          <img src={assetUrl("assets/lucky-fx-logo.jpeg")} alt="Lucky FX Studio" />
           <span>
             LUCKY <b>FX</b>
             <small>STUDIO</small>
@@ -140,7 +142,7 @@ function App() {
         {/* ================= HERO ================= */}
         <section id="home" className="hero section">
           <div className="hero-grid" />
-          <Scene3D />
+          <HeroMedia />
 
           <div className="hero-content">
             <div className="hero-kicker">
@@ -173,16 +175,16 @@ function App() {
               >
                 Our Services <ArrowRight size={17} />
               </button>
-
-              <button
-                className="showreel"
-                onClick={() => scrollToId("portfolio")}
-              >
-                <span>
-                  <Play size={14} fill="currentColor" />
-                </span>
-                Watch Showreel
-              </button>
+<button
+  className="showreel"
+  onClick={() => setShowReel(true)}
+  aria-label="Play Lucky FX Studio showreel"
+>
+  <span>
+    <Play size={14} fill="currentColor" />
+  </span>
+  Watch Showreel
+</button>
             </div>
 
             <div className="hero-socials">
@@ -249,7 +251,7 @@ function App() {
 
               <div className="about-image-card">
                 <img
-                  src="/assets/reference-home.jpeg"
+                  src={assetUrl("assets/reference-home.jpeg")}
                   alt="Lucky FX Studio creative workspace"
                 />
                 <div className="about-image-overlay" />
@@ -772,14 +774,15 @@ function App() {
             </div>
 
             <form className="contact-form" onSubmit={handleSubmit}>
+              <label className="hp-field" aria-hidden="true">Website<input name="website" tabIndex="-1" autoComplete="off" /></label>
               <div className="field-row">
-                <input required placeholder="Full Name" />
-                <input required type="email" placeholder="Email Address" />
+                <input name="name" required minLength="2" maxLength="100" placeholder="Full Name" />
+                <input name="email" required type="email" maxLength="254" placeholder="Email Address" />
               </div>
 
               <div className="field-row">
-                <input placeholder="Phone / WhatsApp" />
-                <select defaultValue="">
+                <input name="phone" maxLength="40" placeholder="Phone / WhatsApp" />
+                <select name="service" defaultValue="">
                   <option value="" disabled>
                     Service Required
                   </option>
@@ -790,7 +793,10 @@ function App() {
               </div>
 
               <textarea
+                name="message"
                 required
+                minLength="10"
+                maxLength="3000"
                 placeholder="Project details, deadline, reference and requirements..."
                 rows="6"
               />
@@ -800,17 +806,17 @@ function App() {
                 <input placeholder="Budget Range" />
               </div>
 
-              <button className="btn btn-primary" type="submit">
-                {sent ? "Inquiry Ready ✓" : "Send Project Inquiry"}
+              <button className="btn btn-primary" type="submit" disabled={sending}>
+                {sending ? "Sending…" : sent ? "Inquiry Sent ✓" : "Send Project Inquiry"}
                 <Send size={16} />
               </button>
 
               {sent && (
                 <p className="form-note">
-                  Thanks! This demo form is ready for backend/email integration
-                  later.
+                  Thanks! Your inquiry has been sent successfully.
                 </p>
               )}
+              {formError && <p className="form-note form-error">{formError}</p>}
             </form>
           </div>
         </section>
@@ -832,11 +838,82 @@ function App() {
           </button>
         </section>
       </main>
+      {/* ================= SHOWREEL MODAL ================= */}
+<AnimatePresence>
+  {showReel && (
+    <motion.div
+      className="showreel-modal-backdrop"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={() => setShowReel(false)}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Lucky FX Studio showreel"
+    >
+      <motion.div
+        className="showreel-modal-card"
+        initial={{ opacity: 0, y: 28, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 20, scale: 0.97 }}
+        transition={{ duration: 0.28, ease: "easeOut" }}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          className="showreel-modal-close"
+          onClick={() => setShowReel(false)}
+          aria-label="Close showreel"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="showreel-video-frame">
+          <video
+            src={assetUrl("assets/reels/video-reel-web.mp4")}
+            controls
+            autoPlay
+            playsInline
+            preload="metadata"
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
+
+        <div className="showreel-modal-copy">
+          <span className="eyebrow">LUCKY FX STUDIO</span>
+
+          <h2>Creative Showreel</h2>
+
+          <p>
+            A preview of Lucky FX Studio's editing, storytelling and
+            visual style.
+          </p>
+
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              setShowReel(false);
+
+              window.setTimeout(() => {
+                scrollToId("contact");
+              }, 180);
+            }}
+          >
+            Start Your Project
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
 
       {/* ================= FOOTER ================= */}
       <footer className="footer">
         <div className="footer-brand">
-          <img src="/assets/lucky-fx-logo.jpeg" alt="Lucky FX Studio" />
+          <img src={assetUrl("assets/lucky-fx-logo.jpeg")} alt="Lucky FX Studio" />
           <h3>
             LUCKY <b>FX</b>
           </h3>
@@ -846,7 +923,7 @@ function App() {
             <Instagram size={17} />
             <Youtube size={17} />
             <Linkedin size={17} />
-            <MessageCircle size={17} />
+            <a href="https://wa.me/919888262216" aria-label="WhatsApp"><MessageCircle size={17} /></a>
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 node_modules
 dist
 .env
+public/assets/reels/video-reel.mp4
 .DS_Store
 .vscode

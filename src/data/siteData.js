@@ -11,17 +11,6 @@ export const services = [
   { no: "10", title: "Logo Animation", short: "Make a static identity move with a memorable logo reveal.", icon: "Zap", accent: "pink" }
 ];
 
-export const portfolio = [
-  { title: "Luxury Property Showcase", category: "Real Estate", description: "A cinematic property showcase designed to highlight architecture, interiors, details and lifestyle.", image: "/assets/reference-home.jpeg" },
-  { title: "Brand Motion Identity", category: "Motion Graphics", description: "Typography, animation, transitions and visual effects for a strong modern identity.", image: "/assets/reference-pages.jpeg" },
-  { title: "A Story of Love", category: "Wedding", description: "A cinematic wedding story focused on emotion, important moments and timeless memories.", image: "/assets/reference-home.jpeg" },
-  { title: "Stories That Matter", category: "Documentary", description: "Interview-led storytelling combining B-roll, sound design, pacing and cinematic visuals.", image: "/assets/reference-pages.jpeg" },
-  { title: "Brand Promotional Film", category: "Commercial", description: "A creative promotional film using dynamic editing, motion graphics, colour and sound.", image: "/assets/reference-home.jpeg" },
-  { title: "Social Media Campaign", category: "Reels", description: "High-energy short-form content with captions, motion graphics and attention-grabbing pacing.", image: "/assets/reference-pages.jpeg" },
-  { title: "YouTube Creator Series", category: "YouTube", description: "Long-form content with storytelling, motion graphics, subtitles, sound and cinematic visuals.", image: "/assets/reference-home.jpeg" },
-  { title: "Cinematic Look Development", category: "Color Grading", description: "Professional correction and grading for a consistent, polished visual identity.", image: "/assets/reference-pages.jpeg" }
-];
-
 export const process = [
   ["01", "Discuss", "We understand your project, requirements, target audience and creative vision."],
   ["02", "Plan", "We organize the footage and plan style, pacing, graphics and direction."],

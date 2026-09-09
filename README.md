@@ -54,3 +54,18 @@ The contact form is currently front-end only. In Phase 3 we can connect it to a 
 3. Working quote/contact backend
 4. SEO, performance, accessibility and mobile polish
 5. Production deploy + custom domain
+# Lucky FX Studio
+
+The public design remains the original Lucky FX React/Vite experience. Portfolio content and contact enquiries are backed by Supabase.
+
+## Setup
+
+1. Create a Supabase project and run `supabase/schema.sql` in its SQL Editor.
+2. In Supabase Authentication, create the client's admin user. No password is stored in this repository.
+3. Copy `.env.example` to `.env` and add the project URL and anon key.
+4. Set `VITE_BASE_PATH` to the GitHub Pages repository path, for example `/LuckyFX/`. Use `/` for a custom domain.
+5. Run `npm install`, then `npm run dev`. Admin is available at the base path plus `admin`.
+
+The large original `video-reel.mp4` is deliberately ignored and excluded from production. The existing optimized `video-reel-web.mp4` is used by the showreel. Client uploads go to the `portfolio-media` Supabase Storage bucket and never require a GitHub redeploy.
+
+Social profile placeholders are intentionally not linked because no verified Instagram, YouTube, or LinkedIn URLs were provided. WhatsApp uses the existing verified business number.
