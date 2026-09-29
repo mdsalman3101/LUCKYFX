@@ -10,6 +10,7 @@ import {
 import HeroMedia from "./components/HeroMedia";
 import Portfolio from "./components/Portfolio";
 import { services, faqs } from "./data/siteData";
+import { useSiteSettings } from "./hooks/useSiteSettings";
 import { assetUrl } from "./lib/assets";
 import { supabase } from "./lib/supabase";
 
@@ -49,6 +50,8 @@ function App() {
   const [sending, setSending] = useState(false);
   const [lastSentAt, setLastSentAt] = useState(0);
   const [showReel, setShowReel] = useState(false);
+  const { settings } = useSiteSettings();
+  const instagramUrl = settings.instagram_url;
 
   // ================= SHOWREEL MODAL =================
   useEffect(() => {
@@ -189,7 +192,7 @@ function App() {
 
             <div className="hero-socials">
               <span>FOLLOW US</span>
-              <Instagram size={16} />
+              {instagramUrl ? <a href={instagramUrl} target="_blank" rel="noreferrer" aria-label="Instagram"><Instagram size={16} /></a> : <Instagram size={16} />}
               <Youtube size={16} />
               <Linkedin size={16} />
               <MessageCircle size={16} />
@@ -920,7 +923,7 @@ function App() {
           <p>Transforming Footage Into Powerful Stories & Visuals.</p>
 
           <div className="footer-socials">
-            <Instagram size={17} />
+            {instagramUrl ? <a href={instagramUrl} target="_blank" rel="noreferrer" aria-label="Instagram"><Instagram size={17} /></a> : <Instagram size={17} />}
             <Youtube size={17} />
             <Linkedin size={17} />
             <a href="https://wa.me/919888262216" aria-label="WhatsApp"><MessageCircle size={17} /></a>
